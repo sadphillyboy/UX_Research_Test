@@ -7,6 +7,7 @@ import io
 import traceback
 
 from analysis import analyze_dataset
+from insights import generate_ai_insights
 
 app = FastAPI(title="UX Research Non-Parametric Analysis Tool")
 
@@ -42,6 +43,16 @@ async def upload_file(file: UploadFile = File(...)):
             )
 
         results = analyze_dataset(df)
+
+        ai_insights = generate_ai_insights(
+            summary=results.get("summary", {}),
+            test_results=results.get("test_results", []),
+            descriptives=results.get("descriptives", {}),
+            dataset_info=results.get("dataset_info", {}),
+        )
+        if ai_insights:
+            results["ai_insights"] = ai_insights
+
         return JSONResponse(content=results)
 
     except Exception as e:

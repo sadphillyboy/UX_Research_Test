@@ -6,3 +6,4 @@ openpyxl
 python-multipart
 numpy
 scikit-posthocs
+httpx
