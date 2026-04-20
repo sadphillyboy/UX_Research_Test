@@ -5,6 +5,8 @@ Detects data types, selects appropriate tests, runs them, generates
 chart specifications, and produces plain-language insights.
 """
 
+from __future__ import annotations
+
 import warnings
 from itertools import combinations
 from typing import Any
@@ -65,7 +67,8 @@ def _col_is_numeric(series: pd.Series) -> bool:
 def _col_is_categorical(series: pd.Series, max_unique: int = 25) -> bool:
     if pd.api.types.is_bool_dtype(series):
         return True
-    if pd.api.types.is_string_dtype(series) or pd.api.types.is_object_dtype(series) or pd.api.types.is_categorical_dtype(series):
+    is_cat = hasattr(pd.api.types, "is_categorical_dtype") and pd.api.types.is_categorical_dtype(series)
+    if pd.api.types.is_string_dtype(series) or pd.api.types.is_object_dtype(series) or is_cat:
         return series.nunique() <= max_unique
     if pd.api.types.is_numeric_dtype(series) and series.nunique() <= 10:
         return True
