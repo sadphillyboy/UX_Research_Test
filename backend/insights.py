@@ -9,8 +9,8 @@ import json
 import os
 import httpx
 
-CLAUDE_MODEL = "claude-sonnet-4-20250514"
-CLAUDE_MODEL_FALLBACK = "claude-3-5-sonnet-20241022"
+CLAUDE_MODEL = "claude-sonnet-4-6"
+CLAUDE_MODEL_FALLBACK = "claude-haiku-4-5"
 API_URL = "https://api.anthropic.com/v1/messages"
 
 
