@@ -9,13 +9,15 @@ import json
 import os
 import httpx
 
-ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 CLAUDE_MODEL = "claude-sonnet-4-20250514"
+CLAUDE_MODEL_FALLBACK = "claude-3-5-sonnet-20241022"
 API_URL = "https://api.anthropic.com/v1/messages"
 
 
 def generate_ai_insights(summary: dict, test_results: list, descriptives: dict, dataset_info: dict) -> dict | None:
-    if not ANTHROPIC_API_KEY:
+    api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+    if not api_key:
+        print("AI insights skipped: ANTHROPIC_API_KEY not set")
         return None
 
     key_findings = summary.get("key_findings", [])
@@ -65,35 +67,41 @@ Rules:
 - If there are no significant findings, say so clearly and suggest what to explore next
 """
 
-    try:
-        response = httpx.post(
-            API_URL,
-            headers={
-                "x-api-key": ANTHROPIC_API_KEY,
-                "anthropic-version": "2023-06-01",
-                "content-type": "application/json",
-            },
-            json={
-                "model": CLAUDE_MODEL,
-                "max_tokens": 1500,
-                "messages": [{"role": "user", "content": prompt}],
-            },
-            timeout=30.0,
-        )
+    for model in [CLAUDE_MODEL, CLAUDE_MODEL_FALLBACK]:
+        try:
+            print(f"Requesting AI insights using {model}...")
+            response = httpx.post(
+                API_URL,
+                headers={
+                    "x-api-key": api_key,
+                    "anthropic-version": "2023-06-01",
+                    "content-type": "application/json",
+                },
+                json={
+                    "model": model,
+                    "max_tokens": 1500,
+                    "messages": [{"role": "user", "content": prompt}],
+                },
+                timeout=30.0,
+            )
 
-        if response.status_code != 200:
-            print(f"Claude API error: {response.status_code} {response.text[:300]}")
-            return None
+            if response.status_code != 200:
+                print(f"Claude API error with {model}: {response.status_code} {response.text[:300]}")
+                continue
 
-        data = response.json()
-        text = data["content"][0]["text"].strip()
+            data = response.json()
+            text = data["content"][0]["text"].strip()
 
-        if text.startswith("```"):
-            text = text.split("\n", 1)[1]
-            text = text.rsplit("```", 1)[0]
+            if text.startswith("```"):
+                text = text.split("\n", 1)[1]
+                text = text.rsplit("```", 1)[0]
 
-        return json.loads(text)
+            result = json.loads(text)
+            print(f"AI insights generated successfully using {model}")
+            return result
 
-    except Exception as e:
-        print(f"AI insights generation failed: {e}")
-        return None
+        except Exception as e:
+            print(f"AI insights generation failed with {model}: {e}")
+            continue
+
+    return None
