@@ -65,15 +65,15 @@ export default function App() {
                   desc="Mann-Whitney U, Kruskal-Wallis, Chi-squared, Spearman, Wilcoxon"
                 />
                 <FeatureCard
-                  title="Instant Insights"
-                  desc="Plain-language findings and interactive visualizations"
+                  title="AI-Powered Insights"
+                  desc="Claude translates statistics into actionable findings for PMs and designers"
                 />
               </div>
             )}
           </div>
         ) : (
           <div className="space-y-8">
-            <Summary summary={results.summary} datasetInfo={results.dataset_info} />
+            <Summary summary={results.summary} datasetInfo={results.dataset_info} aiInsights={results.ai_insights} />
             <Charts charts={results.charts} />
             <TestResults results={results.test_results} />
             <NormalityTable normality={results.normality_tests} />

@@ -32,8 +32,20 @@ export default function FileUpload({ onResults, onLoading }) {
     formData.append('file', file);
 
     try {
-      const res = await fetch('/api/upload', { method: 'POST', body: formData });
-      const data = await res.json();
+      let res;
+      try {
+        res = await fetch('/api/upload', { method: 'POST', body: formData });
+      } catch (fetchErr) {
+        throw new Error('Cannot connect to the backend server. Make sure the backend is running on port 8000 (see README for instructions).');
+      }
+
+      const text = await res.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new Error('The backend returned an invalid response. Check the backend terminal for errors.');
+      }
 
       if (!res.ok) {
         throw new Error(data.error || 'Upload failed');
